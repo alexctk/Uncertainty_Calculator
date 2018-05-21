@@ -19,67 +19,81 @@ from uncertainty import *
 # first define the internal representation of mathematical expressions
 # using classes
 
+# integer
 class Number:
     def __init__(self, value):
         self.value = value
 
+# two integers representing the integral part and fractional
 class Decimal:
     def __init__(self, integ, frac):
         self.integ = integ
         self.frac = frac
-        
+
+# two floats representing measurement value and its uncertainty
+class Measure:
+    def __init__(self, val, uncert):
+        self.val = val
+        self.uncert = uncert
+
+# symbolic variable represented by a single character
 class Variable:
     def __init__(self, char):
         self.char = char
 
-class BinaryME:
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
 
 # expr is a mathematical expression
 # could be Number, Variable, GroupME, NegME, etc. 
 class GroupME:
     def __init__(self, expr):
         self.expr = expr
-
+        
+# negative expression
 class NegME:
     def __init__(self, expr):
         self.expr = expr
 
-
+# addition of two expressions
 class AddME:
     def __init__(self, left, right):
         self.left = left
         self.right = right
 
+# subtraction of two expressions
 class SubME:
     def __init__(self, left, right):
         self.left = left
         self.right = right
 
+# multiplication of two expressions
 class MulME:
     def __init__(self, left, right):
         self.left = left
         self.right = right
 
+# an expression raised to an integer power
 class PowerME:
     def __init__(self, base, exp):
         self.base = base
         self.exp = exp
 
+# returned when a parse fails
 class ErrorME:
     def __init__(self, msg):
         self.msg = msg
 
 
-        
+# define how we print a mathematical expression
+# the type is shown first, then the relevant values
 def show_me(me):
     if type(me) == Number:
         return ('(' + 'Num ' + str(me.value) + ')')
 
     elif type(me) == Decimal:
         return ('(' + 'Dec ' + str(me.integ) + '.' + str(me.frac) + ')')
+
+    elif type(me) == Measure:
+        return ('(' + 'Meas ' + str(me.val) + "+/-" + str(me.uncert) + ')')
     
     elif type(me) == Variable:
         return ('(' + 'Var ' + str(me.char) + ')')
@@ -111,6 +125,12 @@ def show_me(me):
 def parse_elem(string):
     first = string[0]
     rest = string[1:]
+
+    # check if we can find a valid Measure
+    measure = parse_measure(string)
+    if type(measure != ErrorME):
+        return measure
+    # if we see a bracket, look for an expression
     if first == '(':
         # (ME, String)
         expr_and_str = parse_expr(rest)
@@ -119,8 +139,10 @@ def parse_elem(string):
             return [ GroupME(expr_and_str[0]), expr_and_str[1][1:] ]
         else:
             return ErrorME('Elem parse failure at group')
+    # if alpha, it is a variable
     elif first.isalpha:
         return [ Variable(first), rest]
+    # otherwise it is a number
     else:
         numeral_and_str = parse_numeral(string)
         if type(numeral_and_str) == ErrorME:
@@ -218,19 +240,49 @@ def extend_expr(me, string):
         return [me, string]
 
 
+def parse_measure(string):
+    # find the decimal on the left of "+/-"
+    decimal_and_more = parse_decimal(string)
+    if type(decimal_and_more) == ErrorME:
+        return ErrorME('Measure parse failure at first decimal parse')
+    elif decimal_and_more[1] == "":
+        return [decimal_and_more[0], ""]
+    elif decimal_and_more[1][0:3] == "+/-":
+        after_symbol = parse_decimal( decimal_and_more[1][3:])
+        if type(after_symbol) == ErrorME:
+            return ErrorME("Measure parse failure at second decimal parse")
+        else:
+            # measure holds two floats, so we want to convert from our decimal representation
+            # to a float
+
+            value_float = make_float( decimal_and_more[0].integ, decimal_and_more[0].frac)
+            uncert_float = make_float( after_symbol[0].integ, after_symbol[0].frac)
+            return [Measure( value_float, uncert_float), after_symbol[1]]
+    else:
+        return [decimal_and_more[0], decimal_and_more[1]]
+
+# helper function to obtain a float from our internal representation of a decimal
+# input: int, int
+def make_float( integ, frac):
+    # obtain the fractional part by taking the frac numeral and dividing by 10^(number of digits)
+    return integ + frac/(10**(len(str(frac))))
+    
+
 def parse_decimal(string):
+    # find the first numeral
     numeral_and_more = parse_numeral(string)
     if type(numeral_and_more) == ErrorME:
         return ErrorME('Decimal parse failure at numeral parse')
+    # not a decimal
     elif (numeral_and_more[1] == ""):
         return numeral_and_more
+    # find the point in the decimal
     elif (numeral_and_more[1][0] == '.'):
+        # look for the numeral after the point
         after_dot = parse_numeral(numeral_and_more[1][1:])
         if type(after_dot) == ErrorME:
             return ErrorME('Decimal parse failure after dot')
         else:
-            print(type(numeral_and_more[0]))
-            print(type(after_dot[0]))
             return [Decimal(numeral_and_more[0], after_dot[0]), after_dot[1]]
     else:
         return numeral_and_more
@@ -240,37 +292,23 @@ def parse_me(string):
     if string == "":
         return ErrorME('Empty string')
     expr_and_more = parse_expr(string)
-    print( type(expr_and_more))
-    print( show_me(expr_and_more[0]))
-    print( expr_and_more[1])
     if expr_and_more[1] == "":
         return expr_and_more[0]
     else:
         return ErrorME('me parse failure')
         
 
+# function which preprocesses a string to remove whitespace
+def remove_whitespace(string):
+    for i in range(len(string)):
+        if (string[i] == " ") and ( (i+1) < len(string)):
+            return remove_whitespace(new_string)
+        elif (string[i] == " "):
+            new_string = string[0:i]
+            return remove_whitespace(new_string)
+    return string
+       
 
-testNum = Number(1)
-print( show_me(testNum) )
-
-testVar = Variable('c')
-print( show_me(testVar) )
-
-testAdd = AddME( Variable('x'), Number(1))
-print( show_me(testAdd))
-
-testErr = ErrorME('Error test')
-print( show_me(testErr) )
-
-parse_el_test_var = parse_elem('abc')
-print( show_me(parse_el_test_var[0]))
-
-test_string = "x"
-test_parse = parse_me(test_string)
-print( show_me(test_parse))
-
-test_decimal = "1.2"
-decimal_parse = parse_decimal(test_decimal)
-print( show_me(decimal_parse))
-
-print( show_me(Decimal(1,2)))
+add_meas = "3.14+/-0.02*1.23+/-0.04"
+parse = parse_me(add_meas)
+print(show_me(parse))
