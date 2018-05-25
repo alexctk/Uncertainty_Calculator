@@ -5,9 +5,10 @@ from uncertainty import *
 
 # <expression> ::= <signed-term> | <expression> "+" <term> | <expression> "-" <term>
 # <signed-term> ::= "-" <term> | <term>
-# <term> ::= <factor> | <term> * <factor> 
+# <term> ::= <factor> | <term> * <factor>  | <term> / <factor>
 # <factor> ::= <element> | <element> ** <numeral>
-# <element> ::= <measurement> | <variable> | <numeral> | "(" <expression> ")"
+# <element> ::= <func> | <variable> | <numeral> | "(" <expression> ")"
+# <func> :: = <measure> | 'sin' '(' <measure> ')' | 'cos' '(' <measure> ')' | 'log' '(' <measure> ')'
 # <measure> ::= <variable> | <decimal> "+/-" <decimal> | <variable> "+/-" <decimal>
 # <variable> ::= [a-z]
 # <decimal> ::= [0-9]+ "." [0-9]+ | <numeral> ::= <numeral> | <numeral> "." <numeral>
@@ -71,11 +72,29 @@ class MulME:
         self.left = left
         self.right = right
 
+class DivME:
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
+
 # an expression raised to an integer power
 class PowerME:
     def __init__(self, base, exp):
         self.base = base
         self.exp = exp
+
+class SinME:
+    def __init__(self, arg):
+        self.arg = arg
+
+class CosME:
+    def __init__(self, arg):
+        self.arg = arg
+
+class LogME:
+    def __init__(self, arg):
+        self.arg = arg
+
 
 # returned when a parse fails
 class ErrorME:
@@ -113,8 +132,20 @@ def show_me(me):
     elif type(me) == MulME:
         return ('(' + 'Mul ' + show_me(me.left) + ' ' + show_me(me.right) + ')')
 
+    elif type(me) == DivME:
+        return ('(' + 'Div ' + show_me(me.left) + ' ' + show_me(me.right) + ')')
+
     elif type(me) == PowerME:
         return ('(' + 'Power ' + show_me(me.base) + ' ' + str(me.exp) + ')')
+
+    elif type(me) == SinME:
+        return ('(' + 'Sin ' + show_me(me.arg) + ')')
+
+    elif type(me) == CosME:
+        return ('(' + 'Cos ' + show_me(me.arg) + ')')
+
+    elif type(me) == LogME:
+        return ('(' + 'Log ' + show_me(me.arg) + ')')
     
     elif type(me) == ErrorME:
         return me.msg
@@ -122,14 +153,21 @@ def show_me(me):
 
 # Parser
 # Input: a string, output:a list containing a ME and more characters
+
+# <element> ::= <func> | <variable> | <numeral> | "(" <expression> ")"
 def parse_elem(string):
     first = string[0]
     rest = string[1:]
 
     # check if we can find a valid Measure
-    measure = parse_measure(string)
-    if type(measure != ErrorME):
-        return measure
+    #measure = parse_measure(string)
+    #if type(measure) != ErrorME:
+    #    return measure
+
+    function = parse_func(string)
+    if type(function) != ErrorME:
+        return function
+        
     # if we see a bracket, look for an expression
     if first == '(':
         # (ME, String)
@@ -198,12 +236,21 @@ def parse_term(string):
 def extend_term(me, string):
     if string == "":
         return [me, ""]
+    
     elif (string[0] == '*'):
         factor_and_more = parse_factor(string[1:])
         if type(factor_and_more) == ErrorME:
             return ErrorME('Extend failure factor after star')
         else:
             return extend_term(MulME(me, factor_and_more[0]), factor_and_more[1])
+        
+    elif (string[0] == '/'):
+        factor_and_more = parse_factor(string[1:])
+        if type(factor_and_more) == ErrorME:
+            return ErrorME('Extend term failure factor after backslash')
+        else:
+            return extend_term(DivME(me, factor_and_more[0]), factor_and_more[1])
+        
     else:
         return [me, string]
 
@@ -239,6 +286,49 @@ def extend_expr(me, string):
     else:
         return [me, string]
 
+# <func> :: = <measure> | 'sin' '(' <measure> ')' | 'cos' '(' <measure> ')' | 'log' '(' <measure> ')'
+def parse_func(string):
+    # make sure the string is indexable
+    if len(string) > 4:
+        if string[0:4] == "sin(":
+            measure_and_more = parse_measure(string[4:])
+            if type(measure_and_more[0]) == ErrorME:
+                return ErrorME('Func parse failure detecting sin')
+            elif measure_and_more[1] != "" and measure_and_more[1][0] == ')':
+                return [SinME(measure_and_more[0]), measure_and_more[1][1:]]
+            else:
+                return ErrorME('Func parse failure detecting sin closing bracket')
+            
+        if string[0:4] == "cos(":
+            measure_and_more = parse_measure (string[4:])
+            if type(measure_and_more[0]) == ErrorME:
+                return ErrorME('Func parse failure detecting cos')
+            elif measure_and_more[1] != "" and measure_and_more[1][0] == ')':
+                return [CosME(measure_and_more[0]), measure_and_more[1][1:]]
+            else:
+                return ErrorME('Func parse failure detecting cos closing bracket')
+            
+        if string[0:4] == "log(":
+            measure_and_more = parse_measure (string[4:])
+            if type(measure_and_more[0]) == ErrorME:
+                return ErrorME('Func parse failure detecting log')
+            elif measure_and_more[1] != "" and measure_and_more[1][0] == ')':
+                return [LogME(measure_and_more[0]), measure_and_more[1][1:]]
+            else:
+                return ErrorME('Func parse failure detecting log closing bracket')
+        else:
+            measure_and_more = parse_measure(string)
+            if type(measure_and_more) == ErrorME:
+                return ErrorME('Func parse failure base case')
+            else:
+                return [measure_and_more[0], measure_and_more[1]]
+    else:
+        measure_and_more = parse_measure(string)
+        if type(measure_and_more) == ErrorME:
+            return ErrorME('Func parse failure short string')
+        else:
+            return [measure_and_more[0], measure_and_more[1]]
+        
 
 def parse_measure(string):
     # find the decimal on the left of "+/-"
@@ -292,7 +382,9 @@ def parse_me(string):
     if string == "":
         return ErrorME('Empty string')
     expr_and_more = parse_expr(string)
-    if expr_and_more[1] == "":
+    if type(expr_and_more) == ErrorME:
+        return expr_and_more
+    elif expr_and_more[1] == "":
         return expr_and_more[0]
     else:
         return ErrorME('me parse failure')
@@ -309,6 +401,8 @@ def remove_whitespace(string):
     return string
        
 
-add_meas = "3.14+/-0.02*1.23+/-0.04"
-parse = parse_me(add_meas)
+add_meas = "sin(1.23+/-0.04)"
+parse = parse_func(add_meas)
 print(show_me(parse))
+
+
