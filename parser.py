@@ -401,8 +401,11 @@ def remove_whitespace(string):
     return string
        
 
-add_meas = "sin(1.23+/-0.04)"
-parse = parse_func(add_meas)
+add_meas = "(1.23+/-0.03)/(3.12+/-0.04)"
+parse = parse_me(add_meas)
+#print(parse)
+#print(parse[0])
+#print(parse[0].arg)
+#print(show_me(parse[0]))
 print(show_me(parse))
-
 
