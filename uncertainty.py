@@ -9,7 +9,12 @@ class measure:
     def printMeasure( self ):
         print( self.val, '+/-', self.uncert )
 
-## OPERATORS ##        
+## OPERATORS ##
+
+# + - * /
+# sin(), cos()
+# e^, log_e()
+# a^x
 def qsum( m1, m2 ):
     m = measure(0,0)
     m.val = m1.val + m2.val
@@ -40,12 +45,14 @@ def expe( m1 ):
     m.uncert =  m.val * m1.uncert
     return m
 
+# base e logarithm
 def loge( m1 ):
     m = measure(0,0)
     m.val = math.log( m1.val )
     m.uncert = (1/m.val)*m1.uncert
     return m
 
+# m1 ^ exponent
 def power( m1, exponent ):
     m = measure(0,0)
     m.val = math.pow( m1.val, exponent )
