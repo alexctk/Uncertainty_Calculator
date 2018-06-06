@@ -260,7 +260,7 @@ def parse_expr(string):
         if type(term_and_more) == ErrorME:
             return ErrorME('Expr parse failure minus')
         else:
-            return [NegME(term_and_more[0], term_and_more[1])]
+            return [NegME(term_and_more[0]), term_and_more[1]]
     else:
         term_and_more = parse_term(string)
         if type(term_and_more) == ErrorME:
@@ -381,6 +381,8 @@ def parse_decimal(string):
 def parse_me(string):
     if string == "":
         return ErrorME('Empty string')
+    # remove whitespace 
+    remove_whitespace(string)
     expr_and_more = parse_expr(string)
     if type(expr_and_more) == ErrorME:
         return expr_and_more
@@ -399,6 +401,8 @@ def remove_whitespace(string):
             new_string = string[0:i]
             return remove_whitespace(new_string)
     return string
+
+
        
 
 ## TEST LEVEL ##

@@ -9,16 +9,15 @@ class measure:
     def printMeasure( self ):
         print( self.val, '+/-', self.uncert )
 
-<<<<<<< HEAD
 ## OPERATORS ##
 
 # + - * /
 # sin(), cos()
 # e^, log_e()
 # a^x
-=======
+
 ## OPERATORS ##        
->>>>>>> 1b791e7995866638338c45e961c26bad73cfd138
+
 def qsum( m1, m2 ):
     m = measure(0,0)
     m.val = m1.val + m2.val
@@ -49,20 +48,17 @@ def expe( m1 ):
     m.uncert =  m.val * m1.uncert
     return m
 
-<<<<<<< HEAD
 # base e logarithm
-=======
->>>>>>> 1b791e7995866638338c45e961c26bad73cfd138
+
 def loge( m1 ):
     m = measure(0,0)
     m.val = math.log( m1.val )
     m.uncert = (1/m.val)*m1.uncert
     return m
 
-<<<<<<< HEAD
+
 # m1 ^ exponent
-=======
->>>>>>> 1b791e7995866638338c45e961c26bad73cfd138
+
 def power( m1, exponent ):
     m = measure(0,0)
     m.val = math.pow( m1.val, exponent )
@@ -94,11 +90,8 @@ def round_to_n( number, n ):
         return 0
 
 
-    
-<<<<<<< HEAD
-## TOP LEVEL ##
 def main():
-    while True:
+    while True: 
         print()
         print('Menu')
         print()
@@ -124,7 +117,7 @@ def main():
             m2 = measure(y, dy)
             result = qsum( m1, m2) 
             result.printMeasure()
-    
+
         if user_in == 2:
             print('(x+dx) - (y+dy)')
             x = float(input('x = '))
@@ -135,7 +128,7 @@ def main():
             m2 = measure(y, dy)
             result = qsub( m1, m2) 
             result.printMeasure()
-        
+
         if user_in == 3:
             print('(x+dx) * (y+dy)')
             x = float(input('x = '))
@@ -201,114 +194,7 @@ def main():
 
 
 
+
+
 if __name__ == "__main__":
     main()
-
-=======
-## TOP LEVEL ## 
-while True: 
-    print()
-    print('Menu')
-    print()
-    print('1) Addition')
-    print('2) Subtraction')
-    print('3) Multiplication')
-    print('4) Division')
-    print('5) exp')
-    print('6) Base e log')
-    print('7) Exponentiate')
-    print('8) Sine')
-    print('9) Cosine')
-
-    user_in = int(input('Enter: '))
-
-    if user_in == 1:
-        print('(x+dx) + (y+dy)')
-        x = float(input('x = '))
-        dx = float(input('dx = '))
-        y = float(input('y = '))
-        dy = float(input('dy = '))
-        m1 = measure(x, dx)
-        m2 = measure(y, dy)
-        result = qsum( m1, m2) 
-        result.printMeasure()
-    
-    if user_in == 2:
-        print('(x+dx) - (y+dy)')
-        x = float(input('x = '))
-        dx = float(input('dx = '))
-        y = float(input('y = '))
-        dy = float(input('dy = '))
-        m1 = measure(x, dx)
-        m2 = measure(y, dy)
-        result = qsub( m1, m2) 
-        result.printMeasure()
-        
-    if user_in == 3:
-        print('(x+dx) * (y+dy)')
-        x = float(input('x = '))
-        dx = float(input('dx = '))
-        y = float(input('y = '))
-        dy = float(input('dy = '))
-        m1 = measure(x, dx)
-        m2 = measure(y, dy)
-        result = multiply( m1, m2) 
-        result.printMeasure()
-        
-    if user_in == 4:
-        print('(x+dx) / (y+dy)')
-        x = float(input('x = '))
-        dx = float(input('dx = '))
-        y = float(input('y = '))
-        dy = float(input('dy = '))
-        m1 = measure(x, dx)
-        m2 = measure(y, dy)
-        result = divide( m1, m2) 
-        result.printMeasure()
-        
-    if user_in == 5:
-        print('e^(x+dx)')
-        x = float(input('x = '))
-        dx = float(input('dx = '))
-        m1 = measure(x, dx)
-        result = expe( m1 )
-        result.printMeasure()
-        
-    if user_in == 6:
-        print('ln(x+dx)')
-        x = float(input('x = '))
-        dx = float(input('dx = '))
-        m1 = measure(x, dx)
-        result = loge( m1 ) 
-        result.printMeasure()
-        
-    if user_in == 7:
-        print('(x+dx)^a')
-        x = float(input('x = '))
-        dx = float(input('dx = '))
-        y = float(input('a = '))
-        m1 = measure(x, dx)
-        result = power( m1, y)
-        result.printMeasure()
-        
-    if user_in == 8:
-        print('sin(x+dx)')
-        x = float(input('x = '))
-        dx = float(input('dx = '))
-        m1 = measure(x, dx)
-        result = sine( m1 ) 
-        result.printMeasure()
-        
-    if user_in == 9:
-        print('cos(x+dx)')
-        x = float(input('x = '))
-        dx = float(input('dx = '))
-        m1 = measure(x, dx)
-        result = cosine( m1 )
-        result.printMeasure()
-    
-    
-    
-    
-    
->>>>>>> 1b791e7995866638338c45e961c26bad73cfd138
