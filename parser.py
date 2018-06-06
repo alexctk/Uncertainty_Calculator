@@ -8,7 +8,7 @@ from uncertainty import *
 # <term> ::= <factor> | <term> * <factor>  | <term> / <factor>
 # <factor> ::= <element> | <element> ** <numeral>
 # <element> ::= <func> | <variable> | <numeral> | "(" <expression> ")"
-# <func> :: = <measure> | 'sin' '(' <measure> ')' | 'cos' '(' <measure> ')' | 'log' '(' <measure> ')'
+# <func> :: = <measure> | 'sin' '(' <expression> ')' | 'cos' '(' <expression> ')' | 'log' '(' <expression> ')'
 # <measure> ::= <variable> | <decimal> "+/-" <decimal> | <variable> "+/-" <decimal>
 # <variable> ::= [a-z]
 # <decimal> ::= [0-9]+ "." [0-9]+ | <numeral> ::= <numeral> | <numeral> "." <numeral>
@@ -286,34 +286,34 @@ def extend_expr(me, string):
     else:
         return [me, string]
 
-# <func> :: = <measure> | 'sin' '(' <measure> ')' | 'cos' '(' <measure> ')' | 'log' '(' <measure> ')'
+# <func> :: = <measure> | 'sin' '(' <expression> ')' | 'cos' '(' <experession> ')' | 'log' '(' <expression> ')'
 def parse_func(string):
     # make sure the string is indexable
     if len(string) > 4:
         if string[0:4] == "sin(":
-            measure_and_more = parse_measure(string[4:])
-            if type(measure_and_more[0]) == ErrorME:
+            expr_and_more = parse_expr(string[4:])
+            if type(expr_and_more) == ErrorME:
                 return ErrorME('Func parse failure detecting sin')
-            elif measure_and_more[1] != "" and measure_and_more[1][0] == ')':
-                return [SinME(measure_and_more[0]), measure_and_more[1][1:]]
+            elif expr_and_more[1] != "" and expr_and_more[1][0] == ')':
+                return [SinME(expr_and_more[0]), expr_and_more[1][1:]]
             else:
                 return ErrorME('Func parse failure detecting sin closing bracket')
             
         if string[0:4] == "cos(":
-            measure_and_more = parse_measure (string[4:])
-            if type(measure_and_more[0]) == ErrorME:
+            expr_and_more = parse_expr(string[4:])
+            if type(expr_and_more) == ErrorME:
                 return ErrorME('Func parse failure detecting cos')
-            elif measure_and_more[1] != "" and measure_and_more[1][0] == ')':
-                return [CosME(measure_and_more[0]), measure_and_more[1][1:]]
+            elif expr_and_more[1] != "" and expr_and_more[1][0] == ')':
+                return [CosME(expr_and_more[0]), expr_and_more[1][1:]]
             else:
                 return ErrorME('Func parse failure detecting cos closing bracket')
             
         if string[0:4] == "log(":
-            measure_and_more = parse_measure (string[4:])
-            if type(measure_and_more[0]) == ErrorME:
+            expr_and_more = parse_expr(string[4:])
+            if type(expr_and_more[0]) == ErrorME:
                 return ErrorME('Func parse failure detecting log')
-            elif measure_and_more[1] != "" and measure_and_more[1][0] == ')':
-                return [LogME(measure_and_more[0]), measure_and_more[1][1:]]
+            elif expr_and_more[1] != "" and expr_and_more[1][0] == ')':
+                return [LogME(expr_and_more[0]), expr_and_more[1][1:]]
             else:
                 return ErrorME('Func parse failure detecting log closing bracket')
         else:
@@ -406,3 +406,4 @@ def remove_whitespace(string):
        
 
 ## TEST LEVEL ##
+#print(parse_func("sin(((3.14+/-0.01)+(1.12+/-0.1)))"))
