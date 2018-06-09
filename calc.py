@@ -26,11 +26,22 @@ def get_file_and_eval():
             eval_exp.printMeasure()
     return
 
+# input: string containing a ME
+# output: string containing the evaluated measure
+def eval_input(string):
+    internal_rep = p.parse_me(string)
+    eval_exp = e.unc_eval(internal_rep)
+    return eval_exp.writeMeasure()
+
 def print_directions():
     print("Example input: (3.14+/-0.02)+(1.12+/-0.01)")
 
 ### TOP LEVEL ###
 
-while(True):
-    print_directions()
-    get_file_and_eval()
+def main():
+    while(True):
+        print_directions()
+        get_file_and_eval()
+
+if __name__ == "__main__":
+    main()
