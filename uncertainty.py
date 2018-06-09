@@ -6,6 +6,8 @@ class measure:
     def __init__(self, val, uncert):
         self.val = val
         self.uncert = uncert
+    def writeMeasure( self ):
+        return (str(self.val)) + '+/-' + (str(self.uncert))
     def printMeasure( self ):
         print( self.val, '+/-', self.uncert )
 
