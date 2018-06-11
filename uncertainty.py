@@ -1,4 +1,5 @@
-import math 
+import math
+import rounding as r
 
 class measure:
     val = 0.0
@@ -7,7 +8,10 @@ class measure:
         self.val = val
         self.uncert = uncert
     def writeMeasure( self ):
-        return (str(self.val)) + '+/-' + (str(self.uncert))
+        print(self.uncert)
+        chopped_uncert = r.chop_uncert(self.uncert)
+        print(chopped_uncert)
+        return (str(self.val)) + '+/-' + chopped_uncert
     def printMeasure( self ):
         print( self.val, '+/-', self.uncert )
 
@@ -197,6 +201,9 @@ def main():
 
 
 
+def test():
+   result = chop_uncert(0.00913)
+   print(result)
 
 if __name__ == "__main__":
-    main()
+    test()
