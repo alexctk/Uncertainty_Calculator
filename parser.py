@@ -29,6 +29,7 @@ class Number:
 class Decimal:
     def __init__(self, integ, frac):
         self.integ = integ
+        # needs to be a float to properly represent decimals
         self.frac = frac
 
 # two floats representing measurement value and its uncertainty
@@ -109,7 +110,7 @@ def show_me(me):
         return ('(' + 'Num ' + str(me.value) + ')')
 
     elif type(me) == Decimal:
-        return ('(' + 'Dec ' + str(me.integ) + '.' + str(me.frac) + ')')
+        return ('(' + 'Dec ' + str(me.integ + me.frac) + ')')
 
     elif type(me) == Measure:
         return ('(' + 'Meas ' + str(me.val) + "+/-" + str(me.uncert) + ')')
@@ -333,6 +334,7 @@ def parse_func(string):
 def parse_measure(string):
     # find the decimal on the left of "+/-"
     decimal_and_more = parse_decimal(string)
+    #print(show_me(decimal_and_more[0]))
     if type(decimal_and_more) == ErrorME:
         return ErrorME('Measure parse failure at first decimal parse')
     elif decimal_and_more[1] == "":
@@ -344,7 +346,6 @@ def parse_measure(string):
         else:
             # measure holds two floats, so we want to convert from our decimal representation
             # to a float
-
             value_float = make_float( decimal_and_more[0].integ, decimal_and_more[0].frac)
             uncert_float = make_float( after_symbol[0].integ, after_symbol[0].frac)
             return [Measure( value_float, uncert_float), after_symbol[1]]
@@ -355,7 +356,8 @@ def parse_measure(string):
 # input: int, int
 def make_float( integ, frac):
     # obtain the fractional part by taking the frac numeral and dividing by 10^(number of digits)
-    return integ + frac/(10**(len(str(frac))))
+#    return integ + frac/(10**(len(str(frac))))
+    return float(integ + frac)
     
 
 def parse_decimal(string):
@@ -368,8 +370,21 @@ def parse_decimal(string):
         return numeral_and_more
     # find the point in the decimal
     elif (numeral_and_more[1][0] == '.'):
+        #print(numeral_and_more[1])
+        zeroes_after_point = count_zeroes(numeral_and_more[1][1:])
+        #print("zeroes: " + str(zeroes_after_point))
         # look for the numeral after the point
+        # the numeral found is that which follows a series of zeroes after the point
         after_dot = parse_numeral(numeral_and_more[1][1:])
+        #print(after_dot[0])
+        numeral_value = after_dot[0]
+        #print("numeral_value: " + str(numeral_value))
+        # no zero: tenth, divide by 10
+        # one zero: hundredth, divide by 100
+        #print("dividing by: " + str(10**(zeroes_after_point+1)))
+        decimal_part = numeral_value/(10**(zeroes_after_point+1))
+
+        after_dot = [decimal_part, after_dot[1]]
         if type(after_dot) == ErrorME:
             return ErrorME('Decimal parse failure after dot')
         else:
@@ -377,7 +392,20 @@ def parse_decimal(string):
     else:
         return numeral_and_more
 
-    
+# input: a string of the form ".000x" where x is some digit
+# stop counting when we encounter a nonzero
+def count_zeroes(string):
+    count = 0
+    i = 0
+    # for i in range(len(string)):
+      #  if string[i] == '0':
+       #     count = count+1
+    while (string[i] == '0') and (i<len(string)):
+        count = count+1
+        i = i+1
+        
+    return count
+
 def parse_me(string):
     if string == "":
         return ErrorME('Empty string')
@@ -405,5 +433,8 @@ def remove_whitespace(string):
 
        
 
-## TEST LEVEL ##
+## TEST LEVEL ##m
 #print(parse_func("sin(((3.14+/-0.01)+(1.12+/-0.1)))"))
+decimal_number = "(0.020+/-0.01)+(0.0030+/-0.0004)"
+parse = parse_me(decimal_number)
+print(show_me(parse))
