@@ -11,7 +11,8 @@ from uncertainty import *
 # <func> :: = <measure> | 'sin' '(' <expression> ')' | 'cos' '(' <expression> ')' | 'log' '(' <expression> ')'
 # <measure> ::= <variable> | <decimal> "+/-" <decimal> | <variable> "+/-" <decimal>
 # <variable> ::= [a-z]
-# <decimal> ::= [0-9]+ "." [0-9]+ | <numeral> ::= <numeral> | <numeral> "." <numeral>
+# <decimal> ::= [0-9]+ "." [0-9]+ | <numeral> ::= <numeral> | <numeral> "." <digit-string>
+# <digit-string> ::= 0?<numeral>
 # <numeral> ::= [0-9]+
 
 
@@ -370,41 +371,31 @@ def parse_decimal(string):
         return numeral_and_more
     # find the point in the decimal
     elif (numeral_and_more[1][0] == '.'):
-        #print(numeral_and_more[1])
-        zeroes_after_point = count_zeroes(numeral_and_more[1][1:])
-        #print("zeroes: " + str(zeroes_after_point))
-        # look for the numeral after the point
-        # the numeral found is that which follows a series of zeroes after the point
-        after_dot = parse_numeral(numeral_and_more[1][1:])
-        #print(after_dot[0])
-        numeral_value = after_dot[0]
-        #print("numeral_value: " + str(numeral_value))
-        # no zero: tenth, divide by 10
-        # one zero: hundredth, divide by 100
-        #print("dividing by: " + str(10**(zeroes_after_point+1)))
-        decimal_part = numeral_value/(10**(zeroes_after_point+1))
-
-        after_dot = [decimal_part, after_dot[1]]
-        if type(after_dot) == ErrorME:
-            return ErrorME('Decimal parse failure after dot')
+        digit_string_and_more = parse_digit_string(numeral_and_more[1][1:])
+        if type(digit_string_and_more) == ErrorME:
+            return ErrorME("Error parsing digit string")
         else:
-            return [Decimal(numeral_and_more[0], after_dot[0]), after_dot[1]]
+            return [Decimal(numeral_and_more[0], digit_string_and_more[0]), digit_string_and_more[1]]
+
     else:
         return numeral_and_more
 
-# input: a string of the form ".000x" where x is some digit
-# stop counting when we encounter a nonzero
-def count_zeroes(string):
-    count = 0
-    i = 0
-    # for i in range(len(string)):
-      #  if string[i] == '0':
-       #     count = count+1
-    while (string[i] == '0') and (i<len(string)):
-        count = count+1
-        i = i+1
-        
-    return count
+# input: a string of digits which comes after the '.' when parsing a decimal
+# output: the float representing that value and the rest of the string
+# <digit-string> ::= 0?<numeral>
+def parse_digit_string(string):
+    if string[0] == '0':
+        numeral_after_zero = parse_numeral(string[1:])
+        if type(numeral_after_zero) == ErrorME:
+            return ErrorME("Digit string parse failure after zero")
+        else:
+            return [numeral_after_zero[0]/10**(len(str(numeral_after_zero[0]))+1), numeral_after_zero[1]]
+    else:
+        numeral = parse_numeral(string)
+        if type(numeral) == ErrorME:
+            return ErrorME("Digit string parse failure no zero")
+        else:
+            return [numeral[0]/10**(len(str(numeral[0]))), numeral[1]]
 
 def parse_me(string):
     if string == "":
@@ -435,6 +426,6 @@ def remove_whitespace(string):
 
 ## TEST LEVEL ##m
 #print(parse_func("sin(((3.14+/-0.01)+(1.12+/-0.1)))"))
-decimal_number = "(0.020+/-0.01)+(0.0030+/-0.0004)"
-parse = parse_me(decimal_number)
-print(show_me(parse))
+#decimal_number = "0.201"
+#parse = parse_me(decimal_number)
+#print(show_me(parse))
